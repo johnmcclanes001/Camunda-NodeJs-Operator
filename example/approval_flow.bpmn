@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:modeler="http://camunda.org/schema/modeler/1.0" id="Definitions_1hytn8w" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="5.12.1" modeler:executionPlatform="Camunda Platform" modeler:executionPlatformVersion="7.19.0">
+  <bpmn:process id="maker_checker_finas2_0" name="Maker Checker Finas 2.0" isExecutable="true" camunda:historyTimeToLive="0">
+    <bpmn:startEvent id="StartEvent_1">
+      <bpmn:outgoing>Flow_1rczbnf</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:sequenceFlow id="Flow_1rczbnf" sourceRef="StartEvent_1" targetRef="add_update" />
+    <bpmn:userTask id="add_update" name="Add Update">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="pendingAt">maker</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>Flow_1rczbnf</bpmn:incoming>
+      <bpmn:incoming>rejected_by_checker</bpmn:incoming>
+      <bpmn:outgoing>Flow_01czqg5</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:exclusiveGateway id="action_by" name="Action By">
+      <bpmn:incoming>Flow_01czqg5</bpmn:incoming>
+      <bpmn:outgoing>action_by_maker</bpmn:outgoing>
+      <bpmn:outgoing>action_by_checker</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_01czqg5" sourceRef="add_update" targetRef="action_by" />
+    <bpmn:sequenceFlow id="action_by_maker" name="Action By Maker" sourceRef="action_by" targetRef="pending_at_checker">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${group != 'checker' }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:userTask id="pending_at_checker" name="Pending At Checker">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="pendingAt">checker</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>action_by_maker</bpmn:incoming>
+      <bpmn:incoming>other_than_checker</bpmn:incoming>
+      <bpmn:outgoing>Flow_1i4yyqd</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="final_approval_callback" name="Final Approval Callback" camunda:type="external" camunda:topic="finalApprovedTopic">
+      <bpmn:extensionElements>
+        <camunda:inputOutput>
+          <camunda:inputParameter name="finalStatus">approved</camunda:inputParameter>
+        </camunda:inputOutput>
+      </bpmn:extensionElements>
+      <bpmn:incoming>approved_by_checker</bpmn:incoming>
+      <bpmn:incoming>action_by_checker</bpmn:incoming>
+      <bpmn:outgoing>Flow_0945rvr</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_005yyk8">
+      <bpmn:incoming>Flow_1i4yyqd</bpmn:incoming>
+      <bpmn:outgoing>approved_by_checker</bpmn:outgoing>
+      <bpmn:outgoing>rejected_by_checker</bpmn:outgoing>
+      <bpmn:outgoing>other_than_checker</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:sequenceFlow id="Flow_1i4yyqd" sourceRef="pending_at_checker" targetRef="Gateway_005yyk8" />
+    <bpmn:sequenceFlow id="approved_by_checker" name="Approved By Checker" sourceRef="Gateway_005yyk8" targetRef="final_approval_callback">
+      <bpmn:extensionElements />
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${group == 'checker'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="rejected_by_checker" name="Rejected By Checker" sourceRef="Gateway_005yyk8" targetRef="add_update">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${group == 'checker' &amp;&amp; approvalStatus == 'rejected'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="action_by_checker" name="Action By Checker" sourceRef="action_by" targetRef="final_approval_callback">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${group == 'checker' }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="other_than_checker" name="Other Than Checker" sourceRef="Gateway_005yyk8" targetRef="pending_at_checker">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${group != 'checker' }</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:endEvent id="Event_1f1cz87">
+      <bpmn:incoming>Flow_0945rvr</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_0945rvr" sourceRef="final_approval_callback" targetRef="Event_1f1cz87" />
+  </bpmn:process>
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="maker_checker_finas2_0">
+      <bpmndi:BPMNShape id="_BPMNShape_StartEvent_2" bpmnElement="StartEvent_1">
+        <dc:Bounds x="179" y="249" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_19px2lj_di" bpmnElement="add_update">
+        <dc:Bounds x="270" y="227" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_1q3srql_di" bpmnElement="action_by" isMarkerVisible="true">
+        <dc:Bounds x="425" y="242" width="50" height="50" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="426" y="218" width="47" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1qqc7s4_di" bpmnElement="pending_at_checker">
+        <dc:Bounds x="720" y="227" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Activity_1ba4eg1_di" bpmnElement="final_approval_callback">
+        <dc:Bounds x="580" y="440" width="100" height="80" />
+        <bpmndi:BPMNLabel />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_005yyk8_di" bpmnElement="Gateway_005yyk8" isMarkerVisible="true">
+        <dc:Bounds x="895" y="242" width="50" height="50" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_1f1cz87_di" bpmnElement="Event_1f1cz87">
+        <dc:Bounds x="612" y="572" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1rczbnf_di" bpmnElement="Flow_1rczbnf">
+        <di:waypoint x="215" y="267" />
+        <di:waypoint x="270" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_01czqg5_di" bpmnElement="Flow_01czqg5">
+        <di:waypoint x="370" y="267" />
+        <di:waypoint x="425" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0c1kdf1_di" bpmnElement="action_by_maker">
+        <di:waypoint x="475" y="267" />
+        <di:waypoint x="720" y="267" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="559" y="249" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1i4yyqd_di" bpmnElement="Flow_1i4yyqd">
+        <di:waypoint x="820" y="267" />
+        <di:waypoint x="895" y="267" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_1oznt8z_di" bpmnElement="approved_by_checker">
+        <di:waypoint x="920" y="292" />
+        <di:waypoint x="920" y="480" />
+        <di:waypoint x="680" y="480" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="763" y="446" width="64" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_06elmlu_di" bpmnElement="rejected_by_checker">
+        <di:waypoint x="920" y="242" />
+        <di:waypoint x="920" y="120" />
+        <di:waypoint x="320" y="120" />
+        <di:waypoint x="320" y="227" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="640" y="86" width="60" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0k3xh4a_di" bpmnElement="action_by_checker">
+        <di:waypoint x="450" y="292" />
+        <di:waypoint x="450" y="480" />
+        <di:waypoint x="580" y="480" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="491" y="446" width="47" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_15wyzsf_di" bpmnElement="other_than_checker">
+        <di:waypoint x="912" y="284" />
+        <di:waypoint x="858" y="410" />
+        <di:waypoint x="770" y="410" />
+        <di:waypoint x="770" y="307" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="782" y="376" width="56" height="27" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_0945rvr_di" bpmnElement="Flow_0945rvr">
+        <di:waypoint x="630" y="520" />
+        <di:waypoint x="630" y="572" />
+      </bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
